@@ -1,0 +1,37 @@
+#!/usr/bin/env ruby
+
+require 'rubygems'
+require 'bundler'
+Bundler.setup 
+
+require 'ripple'
+require 'json'
+require 'trollop'
+require 'progressbar'
+require 'lib/tweet'
+
+opts = Trollop::options do
+  banner <<-BANNER
+Installs tweets stored in .json files into Riak.
+
+Usage:
+
+  install_tweets <filenames>+
+
+BANNER
+end
+
+progress_bar = ProgressBar.new("files", ARGV.size)
+
+ARGV.each do |file_name|
+  JSON.parse(File.read(file_name)).each do |fields|
+    unless Tweet.make(fields).save
+      STDERR.puts "failed to save to Riak"
+      exit 1
+    end
+  end
+  progress_bar.inc
+end
+
+
+

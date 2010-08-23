@@ -1,0 +1,35 @@
+#!/usr/bin/env ruby
+
+require 'rubygems'
+require 'bundler'
+Bundler.setup 
+
+require 'riak'
+require 'curb'
+require 'trollop'
+
+opts = Trollop::options do
+  banner <<-BANNER
+Deletes everything from the tweets bucket in Riak
+
+Usage:
+
+  install_tweets <filenames>+
+
+BANNER
+end
+
+config = YAML.load(File.read('config/ripple.yml'))['development']
+
+client = Riak::Client.new :host => config['host'], :port => config['port']
+
+bucket = client.bucket 'tweets'
+
+bucket.keys do |keys|
+  keys.each do |key|
+    bucket.delete key
+  end
+end
+
+puts 'all tweets deleted'
+
