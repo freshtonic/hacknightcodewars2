@@ -10,6 +10,10 @@ require 'trollop'
 require 'progressbar'
 require 'lib/tweet'
 
+config = YAML.load(File.read('config/ripple.yml'))['development']
+
+Ripple.config :host => config['host'], :port => config['port']
+
 opts = Trollop::options do
   banner <<-BANNER
 Installs tweets stored in .json files into Riak.
