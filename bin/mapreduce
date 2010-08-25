@@ -25,21 +25,10 @@ map_func_word_count_per_tweet = <<-JAVASCRIPT
     try {
       tweet = Riak.mapValuesJson(value)[0];
       word_count = tweet["text"] ? tweet["text"].split(" ").length : 0; 
-      return [ { word_count: word_count } ];
+      return [ word_count ];
     } catch (e) {
-      return [ { word_count: 0 } ];
+      return [ 0 ];
     }
-  };
-JAVASCRIPT
-
-reduce_func_total_count = <<-JAVASCRIPT
-  function(values) {
-    return [ values.reduce(
-      function(acc,item) { 
-        return { word_count: acc.word_count + item.word_count };
-      }, 
-      { word_count: 0 }
-    ) ];
   };
 JAVASCRIPT
 
@@ -50,7 +39,7 @@ client = Riak::Client.new :host => config['host'], :port => config['port']
 results = Riak::MapReduce.new(client).
   add("tweets").
   map(map_func_word_count_per_tweet).
-  reduce(reduce_func_total_count, :keep => true).
+  reduce("Riak.reduceSum", :keep => true).
   run
     
 results.each {|r| puts r.inspect }
